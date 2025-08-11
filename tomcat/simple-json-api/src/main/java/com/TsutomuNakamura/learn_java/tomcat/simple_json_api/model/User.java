@@ -1,4 +1,4 @@
-package com.TsutomuNakamura.learn_java.tomcat.simple_json_api;
+package com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model;
 
 public class User {
     private Long id;
