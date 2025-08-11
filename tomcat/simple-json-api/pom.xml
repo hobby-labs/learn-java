@@ -76,7 +76,7 @@
             <deployable>
               <type>war</type>
               <properties>
-                <context>/demo-webapp-jakarta</context>
+                <context>/simple-json-api</context>
               </properties>
             </deployable>
           </deployables>
