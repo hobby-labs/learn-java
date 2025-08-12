@@ -2,7 +2,6 @@ package com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service;
 
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.User;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.repository.UserRepository;
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.exception.UserNotFoundException;
 import java.util.List;
 
 public class UserService {
@@ -20,10 +19,4 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
-    
-    public User getUserById(Long id) throws UserNotFoundException {        
-        return new User();
-    }
-    
-
 }
