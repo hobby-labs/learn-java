@@ -7,6 +7,11 @@
 
     <display-name>Simple Servlet Demo</display-name>
     
+    <!-- ServletContextListener for application lifecycle events -->
+    <listener>
+        <listener-class>com.TsutomuNakamura.learn_java.tomcat.simple_json_api.listener.AppContextListener</listener-class>
+    </listener>
+    
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
         <welcome-file>index.jsp</welcome-file>
