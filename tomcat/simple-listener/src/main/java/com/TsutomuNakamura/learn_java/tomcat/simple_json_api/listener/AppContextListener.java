@@ -17,7 +17,7 @@ public class AppContextListener implements ServletContextListener {
     
     public static final String APP_INFO_CSV_KEY = "appInfoCsv";
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
-    private static final int UPDATE_INTERVAL_SECONDS = 10;
+    private static final int UPDATE_INTERVAL_SECONDS = 120;
     private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
     private static final String THREAD_NAME = "UUID-Updater-Thread";
     
@@ -92,7 +92,7 @@ public class AppContextListener implements ServletContextListener {
                 System.err.println("[UUID-Updater] Error updating UUID: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, UPDATE_INTERVAL_SECONDS, UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        }, 0, UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
     
     @Override
