@@ -44,9 +44,6 @@ public class UserController extends HttpServlet {
         } catch (UserNotFoundException e) {
             ApiResponse<Object> apiResponse = ApiResponse.error(e.getMessage());
             JsonResponseUtil.sendJsonResponse(response, apiResponse, HttpServletResponse.SC_NOT_FOUND);
-        } catch (InvalidDataException e) {
-            ApiResponse<Object> apiResponse = ApiResponse.error(e.getMessage());
-            JsonResponseUtil.sendJsonResponse(response, apiResponse, HttpServletResponse.SC_BAD_REQUEST);
         } catch (Exception e) {
             ApiResponse<Object> apiResponse = ApiResponse.error("Internal server error");
             JsonResponseUtil.sendJsonResponse(response, apiResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -54,16 +51,16 @@ public class UserController extends HttpServlet {
     }
  
     // Helper methods
-    private Long parseUserIdFromPath(String pathInfo) throws InvalidDataException {
+    private Long parseUserIdFromPath(String pathInfo) throws IllegalArgumentException {
         String[] pathParts = pathInfo.split("/");
         if (pathParts.length != 2) {
-            throw new InvalidDataException("Invalid request format");
+            throw new IllegalArgumentException("Invalid request format");
         }
         
         try {
             return Long.parseLong(pathParts[1]);
         } catch (NumberFormatException e) {
-            throw new InvalidDataException("Invalid user ID format");
+            throw new IllegalArgumentException("Invalid user ID format");
         }
     }
 }
