@@ -14,14 +14,15 @@ import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JsonResponseUt
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/api/users/")
+@WebServlet("/api/users/*")
 public class UserController extends HttpServlet {
     
     private final UserService userService = new UserService();
     
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        System.out.println("############################################################");
         
         try {
             // Get all users

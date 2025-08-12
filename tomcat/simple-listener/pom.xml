@@ -6,11 +6,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.TsutomuNakamura.learn_java.tomcat</groupId>
-  <artifactId>simple-json-api</artifactId>
+  <artifactId>simple-listener</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>war</packaging>
 
-  <name>simple-json-api</name>
+  <name>simple-listener</name>
 
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
@@ -49,7 +49,7 @@
   </dependencies>
 
   <build>
-    <finalName>simple-json-api</finalName>
+    <finalName>simple-listener</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -83,7 +83,7 @@
             <deployable>
               <type>war</type>
               <properties>
-                <context>/simple-json-api</context>
+                <context>/simple-listener</context>
               </properties>
             </deployable>
           </deployables>

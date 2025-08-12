@@ -11,11 +11,6 @@ public class UserService {
         this.userRepository = new UserRepository();
     }
     
-    // Constructor for dependency injection (if needed for testing)
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-    
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
