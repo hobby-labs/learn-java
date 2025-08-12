@@ -16,69 +16,104 @@ import java.util.concurrent.TimeUnit;
 public class AppContextListener implements ServletContextListener {
     
     public static final String APP_INFO_CSV_KEY = "appInfoCsv";
+    private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    private static final int UPDATE_INTERVAL_SECONDS = 10;
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
+    private static final String THREAD_NAME = "UUID-Updater-Thread";
+    
     private ScheduledExecutorService scheduler;
+    private ServletContextEvent servletContextEvent;
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("Hello!");
+        this.servletContextEvent = sce; // Store reference for use in scheduled task
         
-        // Generate initial UUID and date string
-        String uuid = UUID.randomUUID().toString();
-        String dateString = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        
-        // Create AppInfo object
-        AppInfo appInfo = new AppInfo(uuid, dateString);
-        
-        // Store as CSV in ServletContext
-        String csvData = appInfo.toCsv();
-        sce.getServletContext().setAttribute(APP_INFO_CSV_KEY, csvData);
+        // Generate and store initial UUID and date
+        updateAppInfo("Generated initial UUID");
         
         System.out.println("Application started successfully at " + new java.util.Date());
-        System.out.println("Generated initial UUID: " + uuid);
-        System.out.println("Generated Date: " + dateString);
-        System.out.println("Stored CSV: " + csvData);
         
         // Start background thread to update UUID every 10 seconds
+        startUuidUpdaterThread();
+        
+        System.out.println("UUID updater thread started - will update every " + UPDATE_INTERVAL_SECONDS + " seconds");
+    }
+    
+    /**
+     * Generates new UUID and date, then updates ServletContext
+     * @param logPrefix Prefix for console log message
+     */
+    private void updateAppInfo(String logPrefix) {
+        String uuid = generateUuid();
+        String dateString = generateDateString();
+        
+        AppInfo appInfo = new AppInfo(uuid, dateString);
+        String csvData = appInfo.toCsv();
+        
+        servletContextEvent.getServletContext().setAttribute(APP_INFO_CSV_KEY, csvData);
+        
+        System.out.println("[" + logPrefix + "] UUID: " + uuid + " at " + dateString);
+        if (logPrefix.contains("initial")) {
+            System.out.println("Stored CSV: " + csvData);
+        }
+    }
+    
+    /**
+     * Generates a new UUID string
+     * @return UUID as string
+     */
+    private String generateUuid() {
+        return UUID.randomUUID().toString();
+    }
+    
+    /**
+     * Generates current date and time as formatted string
+     * @return Formatted date string
+     */
+    private String generateDateString() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN));
+    }
+    
+    /**
+     * Starts the background thread for periodic UUID updates
+     */
+    private void startUuidUpdaterThread() {
         scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "UUID-Updater-Thread");
+            Thread t = new Thread(r, THREAD_NAME);
             t.setDaemon(true); // Make it a daemon thread so it doesn't prevent JVM shutdown
             return t;
         });
         
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                // Generate new UUID and date
-                String newUuid = UUID.randomUUID().toString();
-                String newDateString = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                
-                // Create new AppInfo object
-                AppInfo newAppInfo = new AppInfo(newUuid, newDateString);
-                
-                // Update CSV in ServletContext
-                String newCsvData = newAppInfo.toCsv();
-                sce.getServletContext().setAttribute(APP_INFO_CSV_KEY, newCsvData);
-                
-                System.out.println("[UUID-Updater] Updated UUID: " + newUuid + " at " + newDateString);
+                updateAppInfo("UUID-Updater");
             } catch (Exception e) {
                 System.err.println("[UUID-Updater] Error updating UUID: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, 10, 10, TimeUnit.SECONDS); // Start after 10 seconds, then repeat every 10 seconds
-        
-        System.out.println("UUID updater thread started - will update every 10 seconds");
+        }, UPDATE_INTERVAL_SECONDS, UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
     
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("Good bye!");
         
-        // Shutdown the UUID updater thread
+        shutdownUuidUpdaterThread();
+        
+        System.out.println("Application shutdown completed at " + new java.util.Date());
+    }
+    
+    /**
+     * Gracefully shuts down the UUID updater thread
+     */
+    private void shutdownUuidUpdaterThread() {
         if (scheduler != null && !scheduler.isShutdown()) {
             System.out.println("Shutting down UUID updater thread...");
             scheduler.shutdown();
             try {
-                // Wait up to 5 seconds for existing tasks to terminate
-                if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                // Wait up to configured timeout for existing tasks to terminate
+                if (!scheduler.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                     System.out.println("UUID updater thread did not terminate gracefully, forcing shutdown");
                     scheduler.shutdownNow();
                 }
@@ -89,7 +124,5 @@ public class AppContextListener implements ServletContextListener {
             }
             System.out.println("UUID updater thread shut down completed");
         }
-        
-        System.out.println("Application shutdown completed at " + new java.util.Date());
     }
 }
