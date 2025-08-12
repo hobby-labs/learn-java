@@ -7,12 +7,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.User;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.AppInfo;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.ApiResponse;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service.UserService;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JsonResponseUtil;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.listener.AppContextListener;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @WebServlet("/api/users/*")
 public class UserController extends HttpServlet {
@@ -24,7 +28,20 @@ public class UserController extends HttpServlet {
         try {
             // Get all users
             List<User> users = userService.getAllUsers();
-            ApiResponse<List<User>> apiResponse = ApiResponse.success(users);
+            
+            // Get app info from ServletContext
+            String csvData = (String) getServletContext().getAttribute(AppContextListener.APP_INFO_CSV_KEY);
+            AppInfo appInfo = null;
+            if (csvData != null) {
+                appInfo = AppInfo.fromCsv(csvData);
+            }
+            
+            // Create response data with both users and app info
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("users", users);
+            responseData.put("appInfo", appInfo);
+            
+            ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success(responseData);
             JsonResponseUtil.sendJsonResponse(response, apiResponse, HttpServletResponse.SC_OK);
         } catch (Exception e) {
             ApiResponse<Object> apiResponse = ApiResponse.error("Internal server error");
