@@ -87,14 +87,10 @@
           <container>
             <containerId>tomcat10x</containerId>
             <type>embedded</type>
-            <systemProperties>
-              <cargo.jvmargs>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Xdebug</cargo.jvmargs>
-            </systemProperties>
           </container>
           <configuration>
             <properties>
               <cargo.servlet.port>8080</cargo.servlet.port>
-              <cargo.jvmargs>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005</cargo.jvmargs>
             </properties>
           </configuration>
           <deployables>
@@ -109,50 +105,4 @@
       </plugin>
     </plugins>
   </build>
-  
-  <profiles>
-    <!--
-      ./mvnw cargo:run -Pdebug
-      will launch the embedded Tomcat server in debug mode.
-    -->
-    <profile>
-      <id>debug</id>
-      <properties>
-        <maven.compiler.debug>true</maven.compiler.debug>
-        <maven.compiler.debuglevel>lines,vars,source</maven.compiler.debuglevel>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.cargo</groupId>
-            <artifactId>cargo-maven3-plugin</artifactId>
-            <version>1.10.9</version>
-            <configuration>
-              <container>
-                <containerId>tomcat10x</containerId>
-                <type>embedded</type>
-                <systemProperties>
-                  <java.awt.headless>true</java.awt.headless>
-                </systemProperties>
-              </container>
-              <configuration>
-                <properties>
-                  <cargo.servlet.port>8080</cargo.servlet.port>
-                  <cargo.jvmargs>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Xdebug</cargo.jvmargs>
-                </properties>
-              </configuration>
-              <deployables>
-                <deployable>
-                  <type>war</type>
-                  <properties>
-                    <context>/simple-listener</context>
-                  </properties>
-                </deployable>
-              </deployables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
