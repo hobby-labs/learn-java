@@ -56,13 +56,4 @@ public class AppInfo {
     public String toCsv() {
         return jws + "," + dateString;
     }
-
-    // Static method to create from CSV format
-    public static AppInfo fromCsv(String csvLine) {
-        String[] parts = csvLine.split(",", 2);
-        if (parts.length == 2) {
-            return new AppInfo(parts[0], parts[1]);
-        }
-        return null;
-    }
 }
