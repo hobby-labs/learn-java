@@ -29,11 +29,15 @@ public class UserController extends HttpServlet {
             // Get all users
             List<User> users = userService.getAllUsers();
             
-            // Get app info from ServletContext
-            String csvData = (String) getServletContext().getAttribute(AppContextListener.APP_INFO_CSV_KEY);
-            AppInfo appInfo = null;
-            if (csvData != null) {
-                appInfo = AppInfo.fromCsv(csvData);
+            // Get app info from ServletContext (try extended first, fallback to CSV)
+            AppInfo appInfo = (AppInfo) getServletContext().getAttribute(AppContextListener.APP_INFO_CSV_KEY + "_EXTENDED");
+            
+            if (appInfo == null) {
+                // Fallback to CSV parsing
+                String csvData = (String) getServletContext().getAttribute(AppContextListener.APP_INFO_CSV_KEY);
+                if (csvData != null) {
+                    appInfo = AppInfo.fromCsv(csvData);
+                }
             }
             
             // Create response data with both users and app info

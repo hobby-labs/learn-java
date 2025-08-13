@@ -3,12 +3,21 @@ package com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model;
 public class AppInfo {
     private String uuid;
     private String dateString;
+    private String expiresAt;
+    private boolean isExpired;
 
     public AppInfo() {}
 
     public AppInfo(String uuid, String dateString) {
         this.uuid = uuid;
         this.dateString = dateString;
+    }
+    
+    public AppInfo(String uuid, String dateString, String expiresAt, boolean isExpired) {
+        this.uuid = uuid;
+        this.dateString = dateString;
+        this.expiresAt = expiresAt;
+        this.isExpired = isExpired;
     }
 
     public String getUuid() {
@@ -25,6 +34,22 @@ public class AppInfo {
 
     public void setDateString(String dateString) {
         this.dateString = dateString;
+    }
+    
+    public String getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(String expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public boolean isExpired() {
+        return isExpired;
+    }
+
+    public void setExpired(boolean expired) {
+        isExpired = expired;
     }
 
     // Method to convert to CSV format
