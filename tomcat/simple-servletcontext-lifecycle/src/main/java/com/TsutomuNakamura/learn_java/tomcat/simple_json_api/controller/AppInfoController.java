@@ -7,11 +7,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.AppInfo;
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.ApiResponse;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JsonResponseUtil;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.listener.AppContextListener;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.HashMap;
 
 @WebServlet("/api/appinfo")
 public class AppInfoController extends HttpServlet {
@@ -23,15 +24,20 @@ public class AppInfoController extends HttpServlet {
             AppInfo appInfo = (AppInfo) getServletContext().getAttribute(AppContextListener.APP_INFO_CSV_KEY);
             
             if (appInfo != null) {
-                ApiResponse<AppInfo> apiResponse = ApiResponse.success("App info retrieved successfully", appInfo);
-                JsonResponseUtil.sendJsonResponse(response, apiResponse, HttpServletResponse.SC_OK);
+                // Return response in the new format: {"jws": "<JWS_VALUE>"}
+                Map<String, String> jwsResponse = new HashMap<>();
+                jwsResponse.put("jws", appInfo.getJws());
+                
+                JsonResponseUtil.sendJsonResponse(response, jwsResponse, HttpServletResponse.SC_OK);
             } else {
-                ApiResponse<Object> apiResponse = ApiResponse.error("App info not found");
-                JsonResponseUtil.sendJsonResponse(response, apiResponse, HttpServletResponse.SC_NOT_FOUND);
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "App info not found");
+                JsonResponseUtil.sendJsonResponse(response, errorResponse, HttpServletResponse.SC_NOT_FOUND);
             }
         } catch (Exception e) {
-            ApiResponse<Object> apiResponse = ApiResponse.error("Internal server error: " + e.getMessage());
-            JsonResponseUtil.sendJsonResponse(response, apiResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Internal server error: " + e.getMessage());
+            JsonResponseUtil.sendJsonResponse(response, errorResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -1,11 +1,13 @@
 package com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service;
 
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.AppInfo;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.User;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JwsPersistenceUtil;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JwsUtil;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Service class responsible for JWS lifecycle management including generation, 
@@ -21,10 +23,12 @@ public class JwsManagementService {
     
     private final JwsPersistenceUtil persistenceUtil;
     private final JwsUtil jwsUtil;
+    private final UserService userService;
     
     public JwsManagementService() throws Exception {
         this.persistenceUtil = new JwsPersistenceUtil();
         this.jwsUtil = new JwsUtil();
+        this.userService = new UserService();
         
         // Verify JWS utility is working
         if (!jwsUtil.isWorking()) {
@@ -87,7 +91,10 @@ public class JwsManagementService {
      */
     public AppInfo generateNewJwsInfo() {
         try {
-            String jws = generateJws();
+            // Get current user data to include in JWS payload
+            List<User> users = userService.getAllUsers();
+            String jws = generateJwsWithUserData(users);
+            
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime expiresAt = now.plusMinutes(JWS_EXPIRATION_MINUTES);
             
@@ -98,7 +105,7 @@ public class JwsManagementService {
             JwsPersistenceUtil.JwsInfo jwsInfo = new JwsPersistenceUtil.JwsInfo(jws, now, expiresAt);
             persistenceUtil.saveJwsInfo(jwsInfo);
             
-            System.out.println("[JWS-Service] Generated new JWS at " + dateString);
+            System.out.println("[JWS-Service] Generated new JWS with user data at " + dateString);
             System.out.println("[JWS-Service] JWS will expire at: " + expiresString);
             
             return new AppInfo(jws, dateString, expiresString, false);
@@ -127,12 +134,13 @@ public class JwsManagementService {
     }
     
     /**
-     * Generates a new JWS token
+     * Generates a new JWS token with user data in payload
+     * @param users List of users to include in payload
      * @return JWS as string
      * @throws Exception if JWS generation fails
      */
-    private String generateJws() throws Exception {
-        return jwsUtil.generateJws();
+    private String generateJwsWithUserData(List<User> users) throws Exception {
+        return jwsUtil.generateJwsWithPayload(users);
     }
     
     /**

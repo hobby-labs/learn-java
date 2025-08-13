@@ -66,6 +66,46 @@ public class JwsUtil {
     }
     
     /**
+     * Generates a JWS with custom payload data (e.g., user data)
+     * 
+     * Header: {"typ":"JWT","alg":"ES256"}
+     * Payload: Custom data provided
+     * 
+     * @param payloadData Custom payload data to include in JWS
+     * @return JWS token as string
+     * @throws Exception if JWS generation fails
+     */
+    public String generateJwsWithPayload(Object payloadData) throws Exception {
+        // Create JWS header
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
+                .type(JOSEObjectType.JWT)
+                .build();
+        
+        // Create payload with custom data
+        JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
+                .issueTime(new Date());
+        
+        // Add custom payload data
+        if (payloadData != null) {
+            claimsBuilder.claim("data", payloadData);
+        }
+        
+        JWTClaimsSet claimsSet = claimsBuilder.build();
+        
+        // Create signed JWT
+        SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+        
+        // Create ECDSA signer
+        ECDSASigner signer = new ECDSASigner(privateKey);
+        
+        // Sign the JWT
+        signedJWT.sign(signer);
+        
+        // Return serialized JWS
+        return signedJWT.serialize();
+    }
+    
+    /**
      * Loads the private key from the hardcoded PEM string
      * 
      * @return ECPrivateKey for signing
