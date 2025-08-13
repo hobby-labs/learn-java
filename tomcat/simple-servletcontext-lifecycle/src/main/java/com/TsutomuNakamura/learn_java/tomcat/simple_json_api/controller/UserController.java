@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.AppInfo;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.JwsInfo;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JsonResponseUtil;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.listener.AppContextListener;
 
@@ -20,14 +20,14 @@ public class UserController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            // Get app info from ServletContext (single source of truth)
-            AppInfo appInfo = (AppInfo) getServletContext().getAttribute(AppContextListener.APP_INFO_CSV_KEY);
+            // Get JWS info from ServletContext (single source of truth)
+            JwsInfo jwsInfo = (JwsInfo) getServletContext().getAttribute(AppContextListener.JWS_INFO_KEY);
             
-            if (appInfo != null) {
+            if (jwsInfo != null) {
                 // Return response in the new format: {"jws": "<JWS_VALUE>"}
                 // The JWS already contains user data in its payload
                 Map<String, String> jwsResponse = new HashMap<>();
-                jwsResponse.put("jws", appInfo.getJws());
+                jwsResponse.put("jws", jwsInfo.getJws());
                 
                 JsonResponseUtil.sendJsonResponse(response, jwsResponse, HttpServletResponse.SC_OK);
             } else {

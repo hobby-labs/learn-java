@@ -1,6 +1,5 @@
 package com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service;
 
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.AppInfo;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.User;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JwsPersistenceUtil;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JwsUtil;
@@ -40,9 +39,9 @@ public class JwsManagementService {
     
     /**
      * Gets current valid JWS info, generating new one if expired or missing
-     * @return Current valid AppInfo object
+     * @return Current valid JwsInfo object
      */
-    public AppInfo getCurrentValidJwsInfo() {
+    public JwsInfo getCurrentValidJwsInfo() {
         JwsInfo persistedJws = persistenceUtil.loadJwsInfo();
         
         if (persistedJws != null && !persistedJws.isExpired()) {
@@ -50,7 +49,7 @@ public class JwsManagementService {
             System.out.println("[JWS-Service] Using existing valid JWS (expires: " + 
                              persistedJws.getFormattedExpiresTime() + ")");
             
-            return createAppInfoFromJwsInfo(persistedJws);
+            return persistedJws;
         } else {
             // Generate new JWS if none exists or existing is expired
             if (persistedJws != null) {
@@ -66,9 +65,9 @@ public class JwsManagementService {
     
     /**
      * Checks if current JWS is expired and returns updated info if needed
-     * @return Current valid AppInfo object (new if previous was expired)
+     * @return Current valid JwsInfo object (new if previous was expired)
      */
-    public AppInfo checkAndRefreshIfExpired() {
+    public JwsInfo checkAndRefreshIfExpired() {
         JwsInfo persistedJws = persistenceUtil.loadJwsInfo();
         
         if (persistedJws == null || persistedJws.isExpired()) {
@@ -77,21 +76,21 @@ public class JwsManagementService {
                 persistenceUtil.clearPersistedData();
             }
             
-            AppInfo newJwsInfo = generateNewJwsInfo();
+            JwsInfo newJwsInfo = generateNewJwsInfo();
             System.out.println("[JWS-Auto-Renewal] Generated new JWS due to expiration");
             return newJwsInfo;
         } else {
             System.out.println("[JWS-Expiration-Check] JWS still valid (expires: " + 
                              persistedJws.getFormattedExpiresTime() + ")");
-            return createAppInfoFromJwsInfo(persistedJws);
+            return persistedJws;
         }
     }
     
     /**
      * Generates a new JWS with expiration and persists it
-     * @return New AppInfo object with JWS and expiration info
+     * @return New JwsInfo object with JWS and expiration info
      */
-    public AppInfo generateNewJwsInfo() {
+    public JwsInfo generateNewJwsInfo() {
         try {
             // Get current user data to include in JWS payload
             List<User> users = userService.getAllUsers();
@@ -110,27 +109,15 @@ public class JwsManagementService {
             System.out.println("[JWS-Service] Generated new JWS with user data at " + dateString);
             System.out.println("[JWS-Service] JWS will expire at: " + expiresString);
             
-            return new AppInfo(jws, dateString, expiresString);
+            return jwsInfo;
         } catch (Exception e) {
             System.err.println("[JWS-Service] Failed to generate JWS: " + e.getMessage());
             e.printStackTrace();
             
             // Fallback: create an error info
-            String dateString = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN));
-            return new AppInfo("JWS_GENERATION_FAILED", dateString, dateString);
+            LocalDateTime now = LocalDateTime.now();
+            return new JwsInfo("JWS_GENERATION_FAILED", now, now);
         }
-    }
-    
-    /**
-     * Creates AppInfo object from JwsInfo
-     * @param jwsInfo Persisted JWS information
-     * @return AppInfo object for API responses
-     */
-    private AppInfo createAppInfoFromJwsInfo(JwsInfo jwsInfo) {
-        return new AppInfo(
-            jwsInfo.getJws(),
-            jwsInfo.getFormattedCreatedTime()
-        );
     }
     
     /**

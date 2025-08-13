@@ -3,7 +3,7 @@ package com.TsutomuNakamura.learn_java.tomcat.simple_json_api.listener;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.AppInfo;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.JwsInfo;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service.JwsManagementService;
 
 import java.util.concurrent.Executors;
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 @WebListener
 public class AppContextListener implements ServletContextListener {
     
-    public static final String APP_INFO_CSV_KEY = "appInfoCsv";
+    public static final String JWS_INFO_KEY = "jwsInfo";
     private static final int UPDATE_INTERVAL_SECONDS = 10;
     private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
     private static final String THREAD_NAME = "JWS-Updater-Thread";
@@ -30,7 +30,7 @@ public class AppContextListener implements ServletContextListener {
             this.jwsService = new JwsManagementService(); // Initialize JWS management service
             
             // Get current valid JWS info from service (handles loading/generation logic)
-            AppInfo currentJwsInfo = jwsService.getCurrentValidJwsInfo();
+            JwsInfo currentJwsInfo = jwsService.getCurrentValidJwsInfo();
             
             // Update ServletContext with current JWS info
             updateServletContext(currentJwsInfo);
@@ -46,19 +46,19 @@ public class AppContextListener implements ServletContextListener {
             System.err.println("Failed to initialize JWS management service: " + e.getMessage());
             e.printStackTrace();
             
-            // Create a fallback AppInfo to prevent the application from failing
-            AppInfo fallbackInfo = new AppInfo("JWS_INIT_FAILED", 
-                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), "N/A");
+            // Create a fallback JwsInfo to prevent the application from failing
+            JwsInfo fallbackInfo = new JwsInfo("JWS_INIT_FAILED", 
+                java.time.LocalDateTime.now(), java.time.LocalDateTime.now());
             updateServletContext(fallbackInfo);
         }
     }
     
     /**
      * Updates ServletContext with JWS information
-     * @param appInfo AppInfo object to store
+     * @param jwsInfo JwsInfo object to store
      */
-    private void updateServletContext(AppInfo appInfo) {
-        servletContextEvent.getServletContext().setAttribute(APP_INFO_CSV_KEY, appInfo);
+    private void updateServletContext(JwsInfo jwsInfo) {
+        servletContextEvent.getServletContext().setAttribute(JWS_INFO_KEY, jwsInfo);
     }
     
     /**
@@ -79,7 +79,7 @@ public class AppContextListener implements ServletContextListener {
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 // Delegate expiration checking to the service
-                AppInfo refreshedJwsInfo = jwsService.checkAndRefreshIfExpired();
+                JwsInfo refreshedJwsInfo = jwsService.checkAndRefreshIfExpired();
                 updateServletContext(refreshedJwsInfo);
             } catch (Exception e) {
                 System.err.println("[JWS-Expiration-Checker] Error checking JWS expiration: " + e.getMessage());
