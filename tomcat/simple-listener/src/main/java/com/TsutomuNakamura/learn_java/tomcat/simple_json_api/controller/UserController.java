@@ -29,8 +29,12 @@ public class UserController extends HttpServlet {
             // Get all users
             List<User> users = userService.getAllUsers();
             
-            // Get app info from ServletContext (single source of truth)
-            AppInfo appInfo = (AppInfo) getServletContext().getAttribute(AppContextListener.APP_INFO_CSV_KEY);
+            // Get app info from ServletContext
+            String csvData = (String) getServletContext().getAttribute(AppContextListener.APP_INFO_CSV_KEY);
+            AppInfo appInfo = null;
+            if (csvData != null) {
+                appInfo = AppInfo.fromCsv(csvData);
+            }
             
             // Create response data with both users and app info
             Map<String, Object> responseData = new HashMap<>();
