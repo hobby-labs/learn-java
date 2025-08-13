@@ -3,7 +3,6 @@ package com.TsutomuNakamura.learn_java.tomcat.simple_json_api.repository;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.User;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class UserRepository {
     private static final List<User> users = new ArrayList<>();
