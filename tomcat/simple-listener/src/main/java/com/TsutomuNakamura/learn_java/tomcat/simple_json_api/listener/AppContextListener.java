@@ -85,14 +85,13 @@ public class AppContextListener implements ServletContextListener {
     
     /**
      * Updates ServletContext with UUID information
+     * Stores complete AppInfo object as single source of truth
      */
     private void updateServletContextWithUuid(String uuid, String dateString, String expiresAt, boolean isExpired) {
         AppInfo appInfo = new AppInfo(uuid, dateString, expiresAt, isExpired);
-        String csvData = appInfo.toCsv();
-        servletContextEvent.getServletContext().setAttribute(APP_INFO_CSV_KEY, csvData);
         
-        // Also store extended info for JSON responses
-        servletContextEvent.getServletContext().setAttribute(APP_INFO_CSV_KEY + "_EXTENDED", appInfo);
+        // Store only the complete AppInfo object - single source of truth
+        servletContextEvent.getServletContext().setAttribute(APP_INFO_CSV_KEY, appInfo);
     }
     
     /**
