@@ -24,7 +24,6 @@ public class AppContextListener implements ServletContextListener {
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        System.out.println("Hello!");
         this.servletContextEvent = sce; // Store reference for use in scheduled task
         
         try {
