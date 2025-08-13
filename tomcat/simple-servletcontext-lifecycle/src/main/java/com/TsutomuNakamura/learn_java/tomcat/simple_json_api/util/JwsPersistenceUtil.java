@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.JwsInfo;
 
 /**
  * Utility class for persisting JWS data with expiration across application restarts
@@ -32,37 +33,6 @@ public class JwsPersistenceUtil {
         }
         
         this.persistenceFilePath = persistenceDir.resolve(PERSISTENCE_FILE);
-    }
-    
-    /**
-     * Data class to hold JWS information with expiration
-     */
-    public static class JwsInfo {
-        private final String jws;
-        private final LocalDateTime createdTime;
-        private final LocalDateTime expiresTime;
-        
-        public JwsInfo(String jws, LocalDateTime createdTime, LocalDateTime expiresTime) {
-            this.jws = jws;
-            this.createdTime = createdTime;
-            this.expiresTime = expiresTime;
-        }
-        
-        public String getJws() { return jws; }
-        public LocalDateTime getCreatedTime() { return createdTime; }
-        public LocalDateTime getExpiresTime() { return expiresTime; }
-        
-        public boolean isExpired() {
-            return LocalDateTime.now().isAfter(expiresTime);
-        }
-        
-        public String getFormattedCreatedTime() {
-            return createdTime.format(DATETIME_FORMATTER);
-        }
-        
-        public String getFormattedExpiresTime() {
-            return expiresTime.format(DATETIME_FORMATTER);
-        }
     }
     
     /**

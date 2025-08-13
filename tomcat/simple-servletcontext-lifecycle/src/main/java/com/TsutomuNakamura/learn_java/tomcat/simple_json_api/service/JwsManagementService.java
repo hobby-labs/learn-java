@@ -4,6 +4,7 @@ import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.AppInfo;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.User;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JwsPersistenceUtil;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JwsUtil;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.JwsInfo;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -42,7 +43,7 @@ public class JwsManagementService {
      * @return Current valid AppInfo object
      */
     public AppInfo getCurrentValidJwsInfo() {
-        JwsPersistenceUtil.JwsInfo persistedJws = persistenceUtil.loadJwsInfo();
+        JwsInfo persistedJws = persistenceUtil.loadJwsInfo();
         
         if (persistedJws != null && !persistedJws.isExpired()) {
             // Return existing valid JWS
@@ -68,7 +69,7 @@ public class JwsManagementService {
      * @return Current valid AppInfo object (new if previous was expired)
      */
     public AppInfo checkAndRefreshIfExpired() {
-        JwsPersistenceUtil.JwsInfo persistedJws = persistenceUtil.loadJwsInfo();
+        JwsInfo persistedJws = persistenceUtil.loadJwsInfo();
         
         if (persistedJws == null || persistedJws.isExpired()) {
             if (persistedJws != null) {
@@ -103,20 +104,20 @@ public class JwsManagementService {
             String expiresString = expiresAt.format(DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN));
             
             // Store in persistence
-            JwsPersistenceUtil.JwsInfo jwsInfo = new JwsPersistenceUtil.JwsInfo(jws, now, expiresAt);
+            JwsInfo jwsInfo = new JwsInfo(jws, now, expiresAt);
             persistenceUtil.saveJwsInfo(jwsInfo);
             
             System.out.println("[JWS-Service] Generated new JWS with user data at " + dateString);
             System.out.println("[JWS-Service] JWS will expire at: " + expiresString);
             
-            return new AppInfo(jws, dateString, expiresString, false);
+            return new AppInfo(jws, dateString, expiresString);
         } catch (Exception e) {
             System.err.println("[JWS-Service] Failed to generate JWS: " + e.getMessage());
             e.printStackTrace();
             
             // Fallback: create an error info
             String dateString = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN));
-            return new AppInfo("JWS_GENERATION_FAILED", dateString, dateString, true);
+            return new AppInfo("JWS_GENERATION_FAILED", dateString, dateString);
         }
     }
     
@@ -125,12 +126,10 @@ public class JwsManagementService {
      * @param jwsInfo Persisted JWS information
      * @return AppInfo object for API responses
      */
-    private AppInfo createAppInfoFromJwsInfo(JwsPersistenceUtil.JwsInfo jwsInfo) {
+    private AppInfo createAppInfoFromJwsInfo(JwsInfo jwsInfo) {
         return new AppInfo(
             jwsInfo.getJws(),
-            jwsInfo.getFormattedCreatedTime(),
-            jwsInfo.getFormattedExpiresTime(),
-            jwsInfo.isExpired()
+            jwsInfo.getFormattedCreatedTime()
         );
     }
     

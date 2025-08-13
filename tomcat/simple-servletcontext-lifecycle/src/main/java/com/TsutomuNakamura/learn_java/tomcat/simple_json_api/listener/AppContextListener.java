@@ -48,8 +48,7 @@ public class AppContextListener implements ServletContextListener {
             
             // Create a fallback AppInfo to prevent the application from failing
             AppInfo fallbackInfo = new AppInfo("JWS_INIT_FAILED", 
-                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                "N/A", true);
+                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), "N/A");
             updateServletContext(fallbackInfo);
         }
     }

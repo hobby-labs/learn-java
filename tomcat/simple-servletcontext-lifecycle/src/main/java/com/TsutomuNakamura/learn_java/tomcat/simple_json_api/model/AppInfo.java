@@ -4,7 +4,6 @@ public class AppInfo {
     private String jws;
     private String dateString;
     private String expiresAt;
-    private boolean isExpired;
 
     public AppInfo() {}
 
@@ -13,11 +12,10 @@ public class AppInfo {
         this.dateString = dateString;
     }
     
-    public AppInfo(String jws, String dateString, String expiresAt, boolean isExpired) {
+    public AppInfo(String jws, String dateString, String expiresAt) {
         this.jws = jws;
         this.dateString = dateString;
         this.expiresAt = expiresAt;
-        this.isExpired = isExpired;
     }
 
     public String getJws() {
@@ -42,18 +40,5 @@ public class AppInfo {
 
     public void setExpiresAt(String expiresAt) {
         this.expiresAt = expiresAt;
-    }
-
-    public boolean isExpired() {
-        return isExpired;
-    }
-
-    public void setExpired(boolean expired) {
-        isExpired = expired;
-    }
-
-    // Method to convert to CSV format
-    public String toCsv() {
-        return jws + "," + dateString;
     }
 }
