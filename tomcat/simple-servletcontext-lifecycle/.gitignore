@@ -106,6 +106,8 @@ rebel.xml
 .directory
 *~
 
+jws-data/jws-persistence.properties
+
 # Maven Wrapper (uncomment if you want to ignore it)
 # .mvn/
 # mvnw

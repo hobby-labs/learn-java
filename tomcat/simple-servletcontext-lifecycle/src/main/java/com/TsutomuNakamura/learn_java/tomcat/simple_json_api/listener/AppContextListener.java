@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class AppContextListener implements ServletContextListener {
     
     public static final String APP_INFO_CSV_KEY = "appInfoCsv";
-    private static final int UPDATE_INTERVAL_SECONDS = 120;
+    private static final int UPDATE_INTERVAL_SECONDS = 10;
     private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
     private static final String THREAD_NAME = "JWS-Updater-Thread";
     

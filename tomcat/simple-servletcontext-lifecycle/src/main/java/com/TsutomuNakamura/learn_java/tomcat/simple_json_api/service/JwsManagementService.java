@@ -19,8 +19,9 @@ import java.util.List;
 public class JwsManagementService {
     
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
-    private static final int JWS_EXPIRATION_MINUTES = 10; // JWS expires after 10 minutes
-    
+    //private static final int JWS_EXPIRATION_MINUTES = 10; // JWS expires after 10 minutes
+    private static final int JWS_EXPIRATION_MINUTES = 1;
+
     private final JwsPersistenceUtil persistenceUtil;
     private final JwsUtil jwsUtil;
     private final UserService userService;
