@@ -27,15 +27,6 @@ public class AppInfo {
     public void setJws(String jws) {
         this.jws = jws;
     }
-    
-    // Legacy getter for backward compatibility
-    public String getUuid() {
-        return jws;
-    }
-
-    public void setUuid(String uuid) {
-        this.jws = uuid;
-    }
 
     public String getDateString() {
         return dateString;
