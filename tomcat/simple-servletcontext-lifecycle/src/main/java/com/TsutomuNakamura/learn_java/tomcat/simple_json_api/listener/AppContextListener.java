@@ -52,15 +52,16 @@ public class AppContextListener implements ServletContextListener {
             updateServletContext(fallbackInfo);
         }
     }
-    
-    /**
-     * Updates ServletContext with JWS information
-     * @param jwsInfo JwsInfo object to store
-     */
-    private void updateServletContext(JwsInfo jwsInfo) {
-        servletContextEvent.getServletContext().setAttribute(JWS_INFO_KEY, jwsInfo);
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        System.out.println("Good bye!");
+        
+        shutdownJwsExpirationChecker();
+        
+        System.out.println("Application shutdown completed at " + new java.util.Date());
     }
-    
+
     /**
      * Starts the background thread for periodic JWS expiration checking
      */
@@ -87,16 +88,7 @@ public class AppContextListener implements ServletContextListener {
             }
         }, 0, UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
-    
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("Good bye!");
         
-        shutdownJwsExpirationChecker();
-        
-        System.out.println("Application shutdown completed at " + new java.util.Date());
-    }
-    
     /**
      * Gracefully shuts down the JWS expiration checker thread
      */
@@ -118,4 +110,13 @@ public class AppContextListener implements ServletContextListener {
             System.out.println("JWS expiration checker shut down completed");
         }
     }
+
+    /**
+     * Updates ServletContext with JWS information
+     * @param jwsInfo JwsInfo object to store
+     */
+    private void updateServletContext(JwsInfo jwsInfo) {
+        servletContextEvent.getServletContext().setAttribute(JWS_INFO_KEY, jwsInfo);
+    }
+
 }
