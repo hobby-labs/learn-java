@@ -17,14 +17,6 @@ import java.util.Date;
  */
 public class JwsUtil {
     
-    private static final String PRIVATE_KEY_PEM = """
-            -----BEGIN PRIVATE KEY-----
-            MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgSXm+jWiG/BcUUEyy
-            42A8GnIbSYYuW75sAwXOEBK0Ij+hRANCAATEa8CFI+wMQnEedjOVZUyMi/GOMUSs
-            hfE3vebRtblWcU5Zus6XKjq8Gi4dvq0DHQKJ1/yjDjLMVNe73iP1nInM
-            -----END PRIVATE KEY-----
-            """;
-    
     private final ECPrivateKey privateKey;
     
     public JwsUtil() throws Exception {
@@ -106,19 +98,22 @@ public class JwsUtil {
     }
     
     /**
-     * Loads the private key from the hardcoded PEM string
+     * Loads the private key from the configuration file
      * 
      * @return ECPrivateKey for signing
      * @throws Exception if key loading fails
      */
     private ECPrivateKey loadPrivateKey() throws Exception {
+        // Load private key from configuration
+        String privateKeyPEM = ConfigUtil.getJwsPrivateKey();
+        
         // Remove PEM headers and decode Base64
-        String privateKeyPEM = PRIVATE_KEY_PEM
+        String cleanedKey = privateKeyPEM
                 .replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
                 .replaceAll("\\s", "");
         
-        byte[] keyBytes = Base64.getDecoder().decode(privateKeyPEM);
+        byte[] keyBytes = Base64.getDecoder().decode(cleanedKey);
         
         // Create key specification
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
@@ -131,6 +126,7 @@ public class JwsUtil {
             throw new IllegalArgumentException("Private key is not an EC private key");
         }
         
+        System.out.println("Successfully loaded JWS private key from configuration");
         return (ECPrivateKey) privateKey;
     }
     
