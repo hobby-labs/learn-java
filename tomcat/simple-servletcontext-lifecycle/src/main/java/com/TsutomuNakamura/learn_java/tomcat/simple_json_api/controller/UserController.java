@@ -7,38 +7,34 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.JwsInfo;
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.JsonResponseUtil;
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.listener.AppContextListener;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service.JwsService;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.util.ApiResponseUtil;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.HashMap;
 
 @WebServlet("/api/users/*")
 public class UserController extends HttpServlet {
     
+    private JwsService jwsService;
+    
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void init() throws ServletException {
+        this.jwsService = new JwsService(getServletContext());
+    }
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
         try {
-            // Get JWS info from ServletContext (single source of truth)
-            JwsInfo jwsInfo = (JwsInfo) getServletContext().getAttribute(AppContextListener.JWS_INFO_KEY);
-            
-            if (jwsInfo != null) {
-                // Return response in the new format: {"jws": "<JWS_VALUE>"}
-                // The JWS already contains user data in its payload
-                Map<String, String> jwsResponse = new HashMap<>();
-                jwsResponse.put("jws", jwsInfo.getJws());
-                
-                JsonResponseUtil.sendJsonResponse(response, jwsResponse, HttpServletResponse.SC_OK);
+            if (jwsService.isJwsAvailable()) {
+                JwsInfo jwsInfo = jwsService.getCurrentJwsInfo();
+                ApiResponseUtil.sendJwsResponse(response, jwsInfo.getJws());
             } else {
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "App info not found");
-                JsonResponseUtil.sendJsonResponse(response, errorResponse, HttpServletResponse.SC_NOT_FOUND);
+                ApiResponseUtil.sendJwsNotFoundError(response);
             }
         } catch (Exception e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Internal server error: " + e.getMessage());
-            JsonResponseUtil.sendJsonResponse(response, errorResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            ApiResponseUtil.sendInternalServerError(response, e);
         }
     }
 }
