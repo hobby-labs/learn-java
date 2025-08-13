@@ -1,31 +1,40 @@
 package com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model;
 
 public class AppInfo {
-    private String uuid;
+    private String jws;
     private String dateString;
     private String expiresAt;
     private boolean isExpired;
 
     public AppInfo() {}
 
-    public AppInfo(String uuid, String dateString) {
-        this.uuid = uuid;
+    public AppInfo(String jws, String dateString) {
+        this.jws = jws;
         this.dateString = dateString;
     }
     
-    public AppInfo(String uuid, String dateString, String expiresAt, boolean isExpired) {
-        this.uuid = uuid;
+    public AppInfo(String jws, String dateString, String expiresAt, boolean isExpired) {
+        this.jws = jws;
         this.dateString = dateString;
         this.expiresAt = expiresAt;
         this.isExpired = isExpired;
     }
 
+    public String getJws() {
+        return jws;
+    }
+
+    public void setJws(String jws) {
+        this.jws = jws;
+    }
+    
+    // Legacy getter for backward compatibility
     public String getUuid() {
-        return uuid;
+        return jws;
     }
 
     public void setUuid(String uuid) {
-        this.uuid = uuid;
+        this.jws = uuid;
     }
 
     public String getDateString() {
@@ -54,7 +63,7 @@ public class AppInfo {
 
     // Method to convert to CSV format
     public String toCsv() {
-        return uuid + "," + dateString;
+        return jws + "," + dateString;
     }
 
     // Static method to create from CSV format

@@ -4,7 +4,7 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.AppInfo;
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service.UuidManagementService;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service.JwsManagementService;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,34 +16,47 @@ public class AppContextListener implements ServletContextListener {
     public static final String APP_INFO_CSV_KEY = "appInfoCsv";
     private static final int UPDATE_INTERVAL_SECONDS = 120;
     private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
-    private static final String THREAD_NAME = "UUID-Updater-Thread";
+    private static final String THREAD_NAME = "JWS-Updater-Thread";
     
     private ScheduledExecutorService scheduler;
     private ServletContextEvent servletContextEvent;
-    private UuidManagementService uuidService;
+    private JwsManagementService jwsService;
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("Hello!");
         this.servletContextEvent = sce; // Store reference for use in scheduled task
-        this.uuidService = new UuidManagementService(); // Initialize UUID management service
         
-        // Get current valid UUID info from service (handles loading/generation logic)
-        AppInfo currentUuidInfo = uuidService.getCurrentValidUuidInfo();
-        
-        // Update ServletContext with current UUID info
-        updateServletContext(currentUuidInfo);
-        
-        System.out.println("Application started successfully at " + new java.util.Date());
-        
-        // Start background thread to check UUID expiration periodically
-        startUuidExpirationChecker();
-        
-        System.out.println("UUID expiration checker started - will check every " + UPDATE_INTERVAL_SECONDS + " seconds");
+        try {
+            this.jwsService = new JwsManagementService(); // Initialize JWS management service
+            
+            // Get current valid JWS info from service (handles loading/generation logic)
+            AppInfo currentJwsInfo = jwsService.getCurrentValidJwsInfo();
+            
+            // Update ServletContext with current JWS info
+            updateServletContext(currentJwsInfo);
+            
+            System.out.println("Application started successfully at " + new java.util.Date());
+            
+            // Start background thread to check JWS expiration periodically
+            startJwsExpirationChecker();
+            
+            System.out.println("JWS expiration checker started - will check every " + UPDATE_INTERVAL_SECONDS + " seconds");
+            
+        } catch (Exception e) {
+            System.err.println("Failed to initialize JWS management service: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Create a fallback AppInfo to prevent the application from failing
+            AppInfo fallbackInfo = new AppInfo("JWS_INIT_FAILED", 
+                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                "N/A", true);
+            updateServletContext(fallbackInfo);
+        }
     }
     
     /**
-     * Updates ServletContext with UUID information
+     * Updates ServletContext with JWS information
      * @param appInfo AppInfo object to store
      */
     private void updateServletContext(AppInfo appInfo) {
@@ -51,9 +64,14 @@ public class AppContextListener implements ServletContextListener {
     }
     
     /**
-     * Starts the background thread for periodic UUID expiration checking
+     * Starts the background thread for periodic JWS expiration checking
      */
-    private void startUuidExpirationChecker() {
+    private void startJwsExpirationChecker() {
+        if (jwsService == null) {
+            System.err.println("Cannot start JWS expiration checker - service not initialized");
+            return;
+        }
+        
         scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, THREAD_NAME);
             t.setDaemon(true); // Make it a daemon thread so it doesn't prevent JVM shutdown
@@ -63,10 +81,10 @@ public class AppContextListener implements ServletContextListener {
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 // Delegate expiration checking to the service
-                AppInfo refreshedUuidInfo = uuidService.checkAndRefreshIfExpired();
-                updateServletContext(refreshedUuidInfo);
+                AppInfo refreshedJwsInfo = jwsService.checkAndRefreshIfExpired();
+                updateServletContext(refreshedJwsInfo);
             } catch (Exception e) {
-                System.err.println("[UUID-Expiration-Checker] Error checking UUID expiration: " + e.getMessage());
+                System.err.println("[JWS-Expiration-Checker] Error checking JWS expiration: " + e.getMessage());
                 e.printStackTrace();
             }
         }, 0, UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
@@ -76,30 +94,30 @@ public class AppContextListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("Good bye!");
         
-        shutdownUuidExpirationChecker();
+        shutdownJwsExpirationChecker();
         
         System.out.println("Application shutdown completed at " + new java.util.Date());
     }
     
     /**
-     * Gracefully shuts down the UUID expiration checker thread
+     * Gracefully shuts down the JWS expiration checker thread
      */
-    private void shutdownUuidExpirationChecker() {
+    private void shutdownJwsExpirationChecker() {
         if (scheduler != null && !scheduler.isShutdown()) {
-            System.out.println("Shutting down UUID expiration checker thread...");
+            System.out.println("Shutting down JWS expiration checker thread...");
             scheduler.shutdown();
             try {
                 // Wait up to configured timeout for existing tasks to terminate
                 if (!scheduler.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                    System.out.println("UUID expiration checker did not terminate gracefully, forcing shutdown");
+                    System.out.println("JWS expiration checker did not terminate gracefully, forcing shutdown");
                     scheduler.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                System.err.println("Interrupted while waiting for UUID expiration checker to terminate");
+                System.err.println("Interrupted while waiting for JWS expiration checker to terminate");
                 scheduler.shutdownNow();
                 Thread.currentThread().interrupt();
             }
-            System.out.println("UUID expiration checker shut down completed");
+            System.out.println("JWS expiration checker shut down completed");
         }
     }
 }

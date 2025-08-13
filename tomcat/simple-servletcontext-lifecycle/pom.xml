@@ -6,11 +6,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.TsutomuNakamura.learn_java.tomcat</groupId>
-  <artifactId>simple-listener</artifactId>
+  <artifactId>simple-servletcontext-lifecycle</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>war</packaging>
 
-  <name>simple-listener</name>
+  <name>simple-servletcontext-lifecycle</name>
 
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
@@ -45,6 +45,13 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.15.2</version>
+    </dependency>
+    
+    <!-- JWT/JWS support -->
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>9.37.3</version>
     </dependency>
   </dependencies>
 
