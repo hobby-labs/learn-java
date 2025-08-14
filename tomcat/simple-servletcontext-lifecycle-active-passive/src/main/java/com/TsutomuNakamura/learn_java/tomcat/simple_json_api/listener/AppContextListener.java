@@ -4,7 +4,7 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.model.JwsInfo;
-import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service.JwsManagementService;
+import com.TsutomuNakamura.learn_java.tomcat.simple_json_api.service.JwsActivePassiveManagementService;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,31 +16,32 @@ public class AppContextListener implements ServletContextListener {
     public static final String JWS_INFO_KEY = "jwsInfo";
     private static final int UPDATE_INTERVAL_SECONDS = 10;
     private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
-    private static final String THREAD_NAME = "JWS-Updater-Thread";
+    private static final String THREAD_NAME = "JWS-Maintenance-Thread";
     
     private ScheduledExecutorService scheduler;
     private ServletContextEvent servletContextEvent;
-    private JwsManagementService jwsService;
+    private JwsActivePassiveManagementService jwsService;
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         this.servletContextEvent = sce; // Store reference for use in scheduled task
         
         try {
-            this.jwsService = new JwsManagementService(); // Initialize JWS management service
+            this.jwsService = new JwsActivePassiveManagementService(); // Initialize JWS management service
             
-            // Get current valid JWS info from service (handles loading/generation logic)
-            JwsInfo currentJwsInfo = jwsService.getCurrentValidJwsInfo();
+            // Get current active JWS info from service (handles loading/generation logic)
+            JwsInfo currentJwsInfo = jwsService.getCurrentActiveJwsInfo();
             
             // Update ServletContext with current JWS info
             updateServletContext(currentJwsInfo);
             
             System.out.println("Application started successfully at " + new java.util.Date());
+            System.out.println("Active/Passive JWS Management initialized - " + jwsService.getTokenManager().getTokenSummary());
             
             // Start background thread to check JWS expiration periodically
             startJwsExpirationChecker();
             
-            System.out.println("JWS expiration checker started - will check every " + UPDATE_INTERVAL_SECONDS + " seconds");
+            System.out.println("JWS maintenance checker started - will check every " + UPDATE_INTERVAL_SECONDS + " seconds");
             
         } catch (Exception e) {
             System.err.println("Failed to initialize JWS management service: " + e.getMessage());
@@ -63,11 +64,11 @@ public class AppContextListener implements ServletContextListener {
     }
 
     /**
-     * Starts the background thread for periodic JWS expiration checking
+     * Starts the background thread for periodic JWS maintenance (rotation and cleanup)
      */
     private void startJwsExpirationChecker() {
         if (jwsService == null) {
-            System.err.println("Cannot start JWS expiration checker - service not initialized");
+            System.err.println("Cannot start JWS maintenance checker - service not initialized");
             return;
         }
         
@@ -79,35 +80,35 @@ public class AppContextListener implements ServletContextListener {
         
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                // Delegate expiration checking to the service
-                JwsInfo refreshedJwsInfo = jwsService.checkAndRefreshIfExpired();
+                // Perform periodic maintenance: token rotation, expiration cleanup
+                JwsInfo refreshedJwsInfo = jwsService.performPeriodicMaintenance();
                 updateServletContext(refreshedJwsInfo);
             } catch (Exception e) {
-                System.err.println("[JWS-Expiration-Checker] Error checking JWS expiration: " + e.getMessage());
+                System.err.println("[JWS-Maintenance-Checker] Error during periodic maintenance: " + e.getMessage());
                 e.printStackTrace();
             }
         }, 0, UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
         
     /**
-     * Gracefully shuts down the JWS expiration checker thread
+     * Gracefully shuts down the JWS maintenance checker thread
      */
     private void shutdownJwsExpirationChecker() {
         if (scheduler != null && !scheduler.isShutdown()) {
-            System.out.println("Shutting down JWS expiration checker thread...");
+            System.out.println("Shutting down JWS maintenance checker thread...");
             scheduler.shutdown();
             try {
                 // Wait up to configured timeout for existing tasks to terminate
                 if (!scheduler.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                    System.out.println("JWS expiration checker did not terminate gracefully, forcing shutdown");
+                    System.out.println("JWS maintenance checker did not terminate gracefully, forcing shutdown");
                     scheduler.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                System.err.println("Interrupted while waiting for JWS expiration checker to terminate");
+                System.err.println("Interrupted while waiting for JWS maintenance checker to terminate");
                 scheduler.shutdownNow();
                 Thread.currentThread().interrupt();
             }
-            System.out.println("JWS expiration checker shut down completed");
+            System.out.println("JWS maintenance checker shut down completed");
         }
     }
 
